@@ -3,7 +3,7 @@ from sklearn.tree import DecisionTreeClassifier, plot_tree
 import matplotlib.pyplot as plt
 
 # 1. Cargar y limpiar la BD
-archivo = "BD_Ejercicio.xlsx"  # Ubicación de la BD 
+archivo = "02-BD_Ejercicio.xlsx"  # Ubicación de la BD 
 df = pd.read_excel(archivo, sheet_name="Hoja1", skiprows=1)
 
 # Renombrar columnas
