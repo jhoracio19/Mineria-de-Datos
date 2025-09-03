@@ -1,2 +1,0 @@
-# Distribucción normal (simulación)
-
