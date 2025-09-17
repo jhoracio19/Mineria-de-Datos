@@ -3,7 +3,10 @@ import matplotlib.pyplot as plt
 import streamlit as st
 from scipy.stats import binom, norm, expon, bernoulli, poisson
 
-st.set_page_config(page_title="Simulador de Distribuciones", page_icon="📊", layout="wide")
+st.set_page_config(page_title="Proyecto 2 | Simulador de Distribuciones", page_icon="📊", layout="wide")
+
+# Ejecutar con:
+# streamlit run (nombre_del_archivo).py
 
 # ===== Sidebar principal =====
 st.sidebar.title("📊 Menú de opciones")
@@ -13,7 +16,7 @@ opcion = st.sidebar.selectbox(
 )
 
 # ============================================================
-# 🔹 BINOMIAL
+#  BINOMIAL
 # ============================================================
 if opcion == "Binomial":
     st.title("⚪ Distribución Binomial")
@@ -31,7 +34,7 @@ if opcion == "Binomial":
     st.pyplot(fig)
 
 # ============================================================
-# 🔹 NORMAL
+#  NORMAL
 # ============================================================
 elif opcion == "Normal":
     st.title("📈 Distribución Normal")
@@ -47,11 +50,12 @@ elif opcion == "Normal":
     ax.set_title("Distribución Normal")
     ax.set_xlabel("x")
     ax.set_ylabel("f(x)")
+    ax.set_ylim(0, max(pdf) * 1.2)  # fija el eje Y para ver cambios al variar σ
     ax.legend()
     st.pyplot(fig)
 
 # ============================================================
-# 🔹 EXPONENCIAL
+#  EXPONENCIAL
 # ============================================================
 elif opcion == "Exponencial":
     st.title("📉 Distribución Exponencial")
@@ -69,7 +73,7 @@ elif opcion == "Exponencial":
     st.pyplot(fig)
 
 # ============================================================
-# 🔹 PUNTUAL: Bernoulli / Poisson
+#  PUNTUAL: Bernoulli / Poisson
 # ============================================================
 elif opcion == "Puntual (Bernoulli / Poisson)":
     st.title("🎲 Distribuciones Puntuales")
@@ -90,7 +94,7 @@ elif opcion == "Puntual (Bernoulli / Poisson)":
 
     else:  # Poisson
         lam = st.sidebar.number_input("Lambda (λ)", value=3.0, min_value=0.1, step=0.5)
-        k = np.arange(0, int(lam*3)+1)
+        k = np.arange(0, int(lam*5)+1)  # rango más amplio
         pmf = poisson.pmf(k, lam)
 
         fig, ax = plt.subplots()
@@ -115,6 +119,7 @@ elif opcion == "Normal Bivariada (Gibbs)":
     N = st.sidebar.number_input("Iteraciones", value=5000, step=1000)
     burn_in = st.sidebar.number_input("Burn-in", value=500, step=100)
     thin = st.sidebar.number_input("Thinning", value=1, min_value=1)
+    skip = st.sidebar.slider("Submuestreo para gráfico", 1, 50, 10)
 
     # Gibbs Sampling
     def gibbs_bivar_normal(mu1, mu2, s1, s2, rho, N, burn_in, thin, x0=0, y0=0, seed=42):
@@ -140,11 +145,39 @@ elif opcion == "Normal Bivariada (Gibbs)":
 
         return np.array(out_x), np.array(out_y)
 
+    # Ejecutar Gibbs
     X, Y = gibbs_bivar_normal(mu1, mu2, sigma1, sigma2, rho, int(N), int(burn_in), int(thin))
 
+    # --- Gráfico 2D Scatter ---
     fig, ax = plt.subplots()
-    ax.scatter(X[::10], Y[::10], s=8, alpha=0.4)
+    ax.scatter(X[::skip], Y[::skip], s=8, alpha=0.4)
     ax.set_title("Muestras Gibbs - Normal Bivariada")
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     st.pyplot(fig)
+
+    # --- Histograma 3D ---
+    from mpl_toolkits.mplot3d import Axes3D
+
+    fig3d = plt.figure(figsize=(7, 5))
+    ax3d = fig3d.add_subplot(111, projection="3d")
+
+    # Crear histograma 2D
+    hist, xedges, yedges = np.histogram2d(X, Y, bins=30, density=True)
+
+    xpos, ypos = np.meshgrid(xedges[:-1], yedges[:-1], indexing="ij")
+    xpos = xpos.ravel()
+    ypos = ypos.ravel()
+    zpos = 0
+
+    dx = dy = (xedges[1] - xedges[0]) * 0.9
+    dz = hist.ravel()
+
+    ax3d.bar3d(xpos, ypos, zpos, dx, dy, dz, zsort="average", alpha=0.7)
+
+    ax3d.set_title("Histograma 3D - Normal Bivariada (Gibbs)")
+    ax3d.set_xlabel("X")
+    ax3d.set_ylabel("Y")
+    ax3d.set_zlabel("Densidad")
+
+    st.pyplot(fig3d)
