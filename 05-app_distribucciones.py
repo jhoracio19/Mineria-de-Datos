@@ -156,26 +156,24 @@ elif opcion == "Normal Bivariada (Gibbs)":
     ax.set_ylabel("Y")
     st.pyplot(fig)
 
-    # --- Histograma 3D ---
-    from mpl_toolkits.mplot3d import Axes3D
+    # --- Superficie 3D (densidad) ---
+    from mpl_toolkits.mplot3d import Axes3D  # necesario para proyección 3D
 
     fig3d = plt.figure(figsize=(7, 5))
     ax3d = fig3d.add_subplot(111, projection="3d")
 
-    # Crear histograma 2D
-    hist, xedges, yedges = np.histogram2d(X, Y, bins=30, density=True)
+    # Histograma 2D de densidad
+    hist, xedges, yedges = np.histogram2d(X, Y, bins=40, density=True)
 
-    xpos, ypos = np.meshgrid(xedges[:-1], yedges[:-1], indexing="ij")
-    xpos = xpos.ravel()
-    ypos = ypos.ravel()
-    zpos = 0
+    xpos, ypos = np.meshgrid(
+        (xedges[:-1] + xedges[1:]) / 2,
+        (yedges[:-1] + yedges[1:]) / 2
+    )
 
-    dx = dy = (xedges[1] - xedges[0]) * 0.9
-    dz = hist.ravel()
+    # Superficie
+    ax3d.plot_surface(xpos, ypos, hist.T, cmap="viridis", edgecolor="none", alpha=0.9)
 
-    ax3d.bar3d(xpos, ypos, zpos, dx, dy, dz, zsort="average", alpha=0.7)
-
-    ax3d.set_title("Histograma 3D - Normal Bivariada (Gibbs)")
+    ax3d.set_title("Superficie 3D - Densidad Gibbs")
     ax3d.set_xlabel("X")
     ax3d.set_ylabel("Y")
     ax3d.set_zlabel("Densidad")
